@@ -34,5 +34,16 @@ func main() {
   if err != nil {
     fmt.Println("kid1.SetData()", err)
   }
+  // Maybe you want to see your data in json?
+  payload, err := json.MarshalIndent(root, "", "    ")
+  if err != nil {
+    fmt.Println("json.MarshalIndent", err)
+    return // This is a fatal thing, so let's stop here
+  }
+  err := os.WriteFile("_debug.json", payload, 0660)
+  if err != nil {
+    fmt.Println("os.WriteFile", err)
+    // Normally I'd stop here but we are done
+  }
 }
 ```

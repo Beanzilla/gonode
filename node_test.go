@@ -1,6 +1,7 @@
 package gonode_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/beanzilla/gonode"
@@ -364,48 +365,98 @@ func TestNodeNewChilds(t *testing.T) {
 	}
 }
 
-/*
-// This was a test to verify we can json marshal and unmarshal
-// Only uncomment if you need to test this (use diff _debug.json and _debug1.json)
-func TestNodes(t *testing.T) {
-	t.Fail()
+func TestJsonUnmarshal(t *testing.T) {
 	n := gonode.NewNode()
-	a := n.NewChildWithTags("kid", "1")
-	b := n.NewChildWithTags("kid", "2")
-	c := a.NewChildWithTags("kid", "1.1")
-	c.NewChildWithTags("kid", "1.2")
-	d := b.NewChildWithTags("kid", "2.1")
-	e := d.NewChildWithTags("kid", "2.2")
-	if e == nil {
-		t.Errorf("What!?! 42!?!")
-	}
-	err := e.SetData(42)
-	if err != nil {
-		t.Errorf("e.SetData(42) %v", err)
-	}
+	n.NewChildWithDataAndTags(9.81, "gravity")
+	n.NewChildWithDataAndTags(42, "7 million years")
+	n.NewChildWithDataAndTags("Hello World", "hello", "hello world")
+	n1 := n.NewChildWithTags("level 2")
+	n1.NewChildWithDataAndTags(32, "freezing water", "celsius", "temperature")
+	n1.NewChildWithDataAndTags(100, "boiling water", "celsius", "temperature")
 
-	pay, err := json.MarshalIndent(n, "", "  ")
-	if err != nil {
-		t.Errorf("json.MarshalIndent %v", err)
+	original_payload := []byte(`
+	{
+		"Children": [
+			{
+				"Data": 9.81,
+				"Tags": [
+					"gravity"
+				]
+			},
+			{
+				"Data": 42,
+				"Tags": [
+					"7 million years"
+				]
+			},
+			{
+				"Data": "Hello World",
+				"Tags": [
+					"hello",
+					"hello world"
+				]
+			},
+			{
+				"Tags": [
+					"level 2"
+				],
+				"Children": [
+					{
+						"Data": 32,
+						"Tags": [
+							"freezing water",
+							"celsius",
+							"temperature"
+						]
+					},
+					{
+						"Data": 100,
+						"Tags": [
+							"boiling water",
+							"celsius",
+							"temperature"
+						]
+					}
+				]
+			}
+		],
+		"Tags": [
+			"root"
+		]
 	}
-	err = os.WriteFile("_debug.json", pay, 0660)
-	if err != nil {
-		t.Errorf("os.WriteFile %v", err)
-	}
-	//dummy := gonode.NewNode()
-	dummy := &gonode.Node{}
-	err = json.Unmarshal(pay, &dummy)
+	`)
+
+	dummy := gonode.NewNode()
+	err := json.Unmarshal(original_payload, &dummy)
 	if err != nil {
 		t.Errorf("json.Unmarshal %v", err)
 	}
-	t.Logf("%#v", dummy.Child(0))
-	pay, err = json.MarshalIndent(dummy, "", "  ")
-	if err != nil {
-		t.Errorf("json.MarshalIndent %v", err)
+
+	if dummy.Len() != n.Len() {
+		if !t.Failed() {
+			t.Fail()
+		}
+		t.Logf("Root Nodes don't have the same children count (Root: %d, Dummy: %d)", n.Len(), dummy.Len())
 	}
-	err = os.WriteFile("_debug1.json", pay, 0660)
+	if !dummy.HasTag("root") {
+		if !t.Failed() {
+			t.Fail()
+		}
+		t.Logf("Dummy should have 'root' tag, but doesn't")
+	}
+	if dummy.ChildByTagDeep("freezing water") == nil {
+		if !t.Failed() {
+			t.Fail()
+		}
+		t.Logf("Expected a child for 'freezing water', root.Child(3).Child(0)")
+	}
+
+	// This is a bit harder to test for (so for now let's just leave it like so)
+	pay, err := json.Marshal(n)
 	if err != nil {
-		t.Errorf("os.WriteFile %v", err)
+		t.Errorf("json.Marshal %v", err)
+	}
+	if len(pay) == 0 {
+		t.Errorf("Expected payload output")
 	}
 }
-*/

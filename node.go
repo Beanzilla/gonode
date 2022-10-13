@@ -23,13 +23,9 @@ func (n *Node) tomap() map[string]any {
 	pay := map[string]any{}
 	if n.data != nil {
 		pay["Data"] = n.data
-	} else {
-		pay["Data"] = nil
 	}
 	if len(n.tags) != 0 {
 		pay["Tags"] = n.tags
-	} else {
-		pay["Tags"] = nil
 	}
 	if n.Len() != 0 {
 		kids := []map[string]any{}
@@ -37,8 +33,6 @@ func (n *Node) tomap() map[string]any {
 			kids = append(kids, k.tomap())
 		}
 		pay["Children"] = kids
-	} else {
-		pay["Children"] = nil
 	}
 	return pay
 }
@@ -46,9 +40,11 @@ func (n *Node) tomap() map[string]any {
 // Secret util for making a nested Node structure from
 func (n *Node) tonode(lvl map[string]any) error {
 	o := n.NewChild()
-	err := o.SetData(lvl["Data"])
-	if err != nil {
-		return err
+	if lvl["Data"] != nil {
+		err := o.SetData(lvl["Data"])
+		if err != nil {
+			return err
+		}
 	}
 	if lvl["Tags"] != nil {
 		tgs := lvl["Tags"].([]any)

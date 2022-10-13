@@ -1,6 +1,7 @@
 package gonode
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -15,6 +16,83 @@ type Node struct {
 	data     any
 	parent   *Node
 	children []*Node
+}
+
+// Secret util for making a nested map of the children
+func (n *Node) tomap() map[string]any {
+	pay := map[string]any{}
+	if n.data != nil {
+		pay["Data"] = n.data
+	} else {
+		pay["Data"] = nil
+	}
+	if len(n.tags) != 0 {
+		pay["Tags"] = n.tags
+	} else {
+		pay["Tags"] = nil
+	}
+	if n.Len() != 0 {
+		kids := []map[string]any{}
+		for _, k := range n.children {
+			kids = append(kids, k.tomap())
+		}
+		pay["Children"] = kids
+	} else {
+		pay["Children"] = nil
+	}
+	return pay
+}
+
+// Secret util for making a nested Node structure from
+func (n *Node) tonode(lvl map[string]any) error {
+	o := n.NewChild()
+	err := o.SetData(lvl["Data"])
+	if err != nil {
+		return err
+	}
+	if lvl["Tags"] != nil {
+		tgs := lvl["Tags"].([]any)
+		for _, t := range tgs {
+			o.AddTag(t.(string))
+		}
+	}
+	if lvl["Children"] != nil {
+		nxt := lvl["Children"].([]any)
+		for _, l := range nxt {
+			err := o.tonode(l.(map[string]any))
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// Custom Marshaler for json
+func (n *Node) MarshalJSON() ([]byte, error) {
+	pay := n.tomap()
+	return json.Marshal(pay)
+}
+
+// Custom Unmarshaler for json
+func (n *Node) UnmarshalJSON(data []byte) error {
+	pay := map[string]any{}
+	err := json.Unmarshal(data, &pay)
+	if err != nil {
+		return err
+	}
+	err = n.tonode(pay)
+	if err != nil {
+		return err
+	}
+	if n.Child(0).Parent() != nil {
+		c := n.Child(0)
+		n.data = c.data
+		n.tags = c.tags
+		n.children = c.children
+		c.Destroy()
+	}
+	return nil
 }
 
 // Makes a new "root" Node
@@ -124,6 +202,7 @@ func (n *Node) NewChildWithData(data any) *Node {
 	o := &Node{
 		parent: n,
 	}
+	n.AddChild(o)
 	err := o.SetData(data)
 	if err != nil {
 		return nil
@@ -141,11 +220,20 @@ func (n *Node) NewChildWithDataAndTags(data any, tags ...string) *Node {
 		parent: n,
 		tags:   tags,
 	}
+	n.AddChild(o)
 	err := o.SetData(data)
 	if err != nil {
 		return nil
 	}
 	return o
+}
+
+// Sets all values to empty
+func (n *Node) Destroy() {
+	n.data = nil
+	n.tags = []string{}
+	n.RmAllChildren()
+	n.parent = nil
 }
 
 // Returns how far deep from the parent/"root" Node this Node is

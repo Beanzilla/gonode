@@ -348,6 +348,13 @@ func TestNodeNewChilds(t *testing.T) {
 		}
 		t.Logf("Expected 9.81 as data and 'gravity' as tags, got %#v as data and '%s' tags", c.Data(), c.Tags())
 	}
+	c3 := n.Child(3)
+	if !c3.HasTag("gravity") || c3.Data() != 9.81 {
+		if !t.Failed() {
+			t.Fail()
+		}
+		t.Logf("(From Root) Expected 9.81 as data and 'gravity' as tags, got %#v as data and '%s' tags", c.Data(), c.Tags())
+	}
 	c = n.NewChildWithDataAndTags(gonode.NewNode(), "failwhale")
 	if c != nil {
 		if !t.Failed() {
@@ -356,3 +363,49 @@ func TestNodeNewChilds(t *testing.T) {
 		t.Logf("Expected nil, given invalid data type")
 	}
 }
+
+/*
+// This was a test to verify we can json marshal and unmarshal
+// Only uncomment if you need to test this (use diff _debug.json and _debug1.json)
+func TestNodes(t *testing.T) {
+	t.Fail()
+	n := gonode.NewNode()
+	a := n.NewChildWithTags("kid", "1")
+	b := n.NewChildWithTags("kid", "2")
+	c := a.NewChildWithTags("kid", "1.1")
+	c.NewChildWithTags("kid", "1.2")
+	d := b.NewChildWithTags("kid", "2.1")
+	e := d.NewChildWithTags("kid", "2.2")
+	if e == nil {
+		t.Errorf("What!?! 42!?!")
+	}
+	err := e.SetData(42)
+	if err != nil {
+		t.Errorf("e.SetData(42) %v", err)
+	}
+
+	pay, err := json.MarshalIndent(n, "", "  ")
+	if err != nil {
+		t.Errorf("json.MarshalIndent %v", err)
+	}
+	err = os.WriteFile("_debug.json", pay, 0660)
+	if err != nil {
+		t.Errorf("os.WriteFile %v", err)
+	}
+	//dummy := gonode.NewNode()
+	dummy := &gonode.Node{}
+	err = json.Unmarshal(pay, &dummy)
+	if err != nil {
+		t.Errorf("json.Unmarshal %v", err)
+	}
+	t.Logf("%#v", dummy.Child(0))
+	pay, err = json.MarshalIndent(dummy, "", "  ")
+	if err != nil {
+		t.Errorf("json.MarshalIndent %v", err)
+	}
+	err = os.WriteFile("_debug1.json", pay, 0660)
+	if err != nil {
+		t.Errorf("os.WriteFile %v", err)
+	}
+}
+*/

@@ -1,0 +1,4 @@
+# Ignore possible json marshal unmarshal test files
+_debug.json
+_debug1.json
+

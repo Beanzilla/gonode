@@ -319,3 +319,40 @@ func TestNewNodes(t *testing.T) {
 		t.Logf("Expected nil due to invalid data assignment")
 	}
 }
+
+func TestNodeNewChilds(t *testing.T) {
+	n := gonode.NewNode()
+	a := n.NewChildWithData(42)
+	if a.Data() != 42 {
+		t.Fail()
+		t.Logf("Expected 42, got %#v", a.Data())
+	}
+	a = n.NewChildWithData(gonode.NewNode())
+	if a != nil {
+		if !t.Failed() {
+			t.Fail()
+		}
+		t.Logf("Expected nil, given invalid data type")
+	}
+	b := n.NewChildWithTags("kid", "2")
+	if !b.HasTag("kid", "2") {
+		if !t.Failed() {
+			t.Fail()
+		}
+		t.Logf("Expected 'kid' and '2' as tags, got '%s'", b.Tags())
+	}
+	c := n.NewChildWithDataAndTags(9.81, "gravity")
+	if c.Data() != 9.81 || !c.HasTag("gravity") {
+		if !t.Failed() {
+			t.Fail()
+		}
+		t.Logf("Expected 9.81 as data and 'gravity' as tags, got %#v as data and '%s' tags", c.Data(), c.Tags())
+	}
+	c = n.NewChildWithDataAndTags(gonode.NewNode(), "failwhale")
+	if c != nil {
+		if !t.Failed() {
+			t.Fail()
+		}
+		t.Logf("Expected nil, given invalid data type")
+	}
+}

@@ -103,6 +103,51 @@ func (n *Node) NewChild() *Node {
 	return o
 }
 
+// Creates a new Node below this Node with the given tag(s)
+//
+// Returns a pointer to the new Node created
+func (n *Node) NewChildWithTags(tags ...string) *Node {
+	o := &Node{
+		parent: n,
+		tags:   tags,
+	}
+	n.AddChild(o)
+	return o
+}
+
+// Creates a new Node below this Node with the given data
+//
+// data types not allowed: Node, *Node (These are better suited for a "root" Node with children)
+//
+// Returns a pointer to the new Node created (can be nil for invalid data type)
+func (n *Node) NewChildWithData(data any) *Node {
+	o := &Node{
+		parent: n,
+	}
+	err := o.SetData(data)
+	if err != nil {
+		return nil
+	}
+	return o
+}
+
+// Creates a new Node below this Node with the given data and given tag(s)
+//
+// data types not allowed: Node, *Node (These are better suited for a "root" Node with children)
+//
+// Returns a pointer to the new Node created (can be nil for invalid data type)
+func (n *Node) NewChildWithDataAndTags(data any, tags ...string) *Node {
+	o := &Node{
+		parent: n,
+		tags:   tags,
+	}
+	err := o.SetData(data)
+	if err != nil {
+		return nil
+	}
+	return o
+}
+
 // Returns how far deep from the parent/"root" Node this Node is
 //
 // Use "root" to tag a Node as the "root" Node (this reduces the returned depth value to it's correct value)

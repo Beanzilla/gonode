@@ -160,6 +160,21 @@ func (n *Node) Len() int {
 	return len(n.children)
 }
 
+// Iterator - Iterates over the Node's children
+//
+// http://www.golangpatterns.info/object-oriented/iterators#TOC-Implementation
+//
+// for kid := range Node
+func (n *Node) Iter() <- chan *Node {
+	ch := make(chan *Node, n.Len()/2)
+	go func() {
+		for idx := range make([]byte, n.Len()) {
+			ch <- n.children[idx]
+		}
+	}()
+	return ch
+}
+
 // Adds a given Node (as pointer) below this Node
 func (n *Node) AddChild(o *Node) {
 	o.parent = n

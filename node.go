@@ -168,6 +168,7 @@ func (n *Node) Len() int {
 func (n *Node) Iter() <- chan *Node {
 	ch := make(chan *Node, n.Len()/2)
 	go func() {
+		defer close(ch)
 		for idx := range make([]byte, n.Len()) {
 			ch <- n.children[idx]
 		}

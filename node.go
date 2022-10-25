@@ -3,6 +3,7 @@ package gonode
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 
 	"golang.org/x/exp/slices"
@@ -260,11 +261,12 @@ func (n *Node) NewChildWithDataAndTags(data any, tags ...string) *Node {
 // Creates a new child after a particular index (Use -1 to place at the beginning/top)
 func (n *Node) IndexNewChild(idx int) *Node {
 	if n.Len() == 0 || idx > n.Len() || idx < -1 {
+		log.Printf("IndexNewChild(%d) Index out of bounds", idx)
 		return nil
 	}
 	var o *Node = nil
 	at := 0
-	new_kids := make([]*Node, n.Len())
+	new_kids := []*Node{}
 	for kid := range n.Iter() {
 		if at == 0 && idx == -1 {
 			o = &Node{
@@ -293,11 +295,12 @@ func (n *Node) IndexNewChild(idx int) *Node {
 // This version includes given tags to assign to the new node
 func (n *Node) IndexNewChildWithTags(idx int, tags ...string) *Node {
 	if n.Len() == 0 || idx > n.Len() || idx < -1 {
+		log.Printf("IndexNewChildWithTags(%d, %s) Index out of bounds", idx, tags)
 		return nil
 	}
 	var o *Node = nil
 	at := 0
-	new_kids := make([]*Node, n.Len())
+	new_kids := []*Node{}
 	for kid := range n.Iter() {
 		if at == 0 && idx == -1 {
 			o = &Node{
@@ -328,11 +331,12 @@ func (n *Node) IndexNewChildWithTags(idx int, tags ...string) *Node {
 // This version allows setting the new node's data
 func (n *Node) IndexNewChildWithData(idx int, data any) *Node {
 	if n.Len() == 0 || idx > n.Len() || idx < -1 {
+		log.Printf("IndexNewChildWithData(%d, %v) Index out of bounds", idx, data)
 		return nil
 	}
 	var o *Node = nil
 	at := 0
-	new_kids := make([]*Node, n.Len())
+	new_kids := []*Node{}
 	for kid := range n.Iter() {
 		if at == 0 && idx == -1 {
 			o = &Node{
@@ -340,6 +344,7 @@ func (n *Node) IndexNewChildWithData(idx int, data any) *Node {
 			}
 			err := o.SetData(data)
 			if err != nil {
+				log.Printf("IndexNewChildWithData(%d, %v) Invalid data", idx, data)
 				return nil
 			}
 			new_kids = append(new_kids, o)
@@ -355,6 +360,7 @@ func (n *Node) IndexNewChildWithData(idx int, data any) *Node {
 		}
 		err := o.SetData(data)
 		if err != nil {
+			log.Printf("2 IndexNewChildWithData(%d, %v) Invalid data", idx, data)
 			return nil
 		}
 		new_kids = append(new_kids, o)
@@ -369,11 +375,12 @@ func (n *Node) IndexNewChildWithData(idx int, data any) *Node {
 // This version allows setting the new node's data, and given tags
 func (n *Node) IndexNewChildWithDataAndTags(idx int, data any, tags ...string) *Node {
 	if n.Len() == 0 || idx > n.Len() || idx < -1 {
+		log.Printf("IndexNewChildWithDataAndTags(%d, %v, %s) Index out of bounds", idx, data, tags)
 		return nil
 	}
 	var o *Node = nil
 	at := 0
-	new_kids := make([]*Node, n.Len())
+	new_kids := []*Node{}
 	for kid := range n.Iter() {
 		if at == 0 && idx == -1 {
 			o = &Node{
@@ -382,6 +389,7 @@ func (n *Node) IndexNewChildWithDataAndTags(idx int, data any, tags ...string) *
 			}
 			err := o.SetData(data)
 			if err != nil {
+				log.Printf("IndexNewChildWithDataAndTags(%d, %v, %s) Invalid data", idx, data, tags)
 				return nil
 			}
 			new_kids = append(new_kids, o)
@@ -398,6 +406,7 @@ func (n *Node) IndexNewChildWithDataAndTags(idx int, data any, tags ...string) *
 		}
 		err := o.SetData(data)
 		if err != nil {
+			log.Printf("2 IndexNewChildWithDataAndTags(%d, %v, %s) Invalid data", idx, data, tags)
 			return nil
 		}
 		new_kids = append(new_kids, o)

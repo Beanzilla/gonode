@@ -460,3 +460,83 @@ func TestJsonUnmarshal(t *testing.T) {
 		t.Errorf("Expected payload output")
 	}
 }
+
+func TestNodeIndex(t *testing.T) {
+	n := gonode.NewNode()
+	k0 := n.NewChildWithTags("kid", "0")
+	k1 := n.NewChildWithTags("kid", "1")
+	k2 := n.NewChildWithTags("kid", "2")
+	k3 := n.IndexNewChildWithTags(1, "kid", "3")
+	if k0 == nil || k1 == nil || k2 == nil {
+		t.Errorf("Unexpected error, NewChild returning nil")
+	}
+	if k3 == nil {
+		t.Errorf("IndexNewChild returned nil?")
+	}
+
+	/*
+		pay, err := json.MarshalIndent(n, "", "  ")
+		if err != nil {
+			t.Errorf("Marshal %v", err)
+			return
+		}
+		err = os.WriteFile("_debug.json", pay, 0660)
+		if err != nil {
+			t.Errorf("WriteFile %v", err)
+			return
+		}
+	*/
+
+	k := n.Child(2)
+	if k == nil {
+		t.Errorf("Child is nil?")
+		idx := 0
+		for kid := range n.Iter() {
+			t.Logf("%d %#v", idx, kid)
+			idx += 1
+		}
+		return
+	}
+	if !k.HasTag("kid", "3") {
+		t.Errorf("Expected tags 'kid', '3', got %s", k.Tags())
+	}
+	if k.Index() != 2 {
+		t.Errorf("Expected index to return 2, got %d", k.Index())
+	}
+	if n.Index() != -1 {
+		t.Errorf("Expected index of -1, got %d", n.Index())
+	}
+	k4 := n.IndexNewChild(9)
+	if k4 != nil {
+		t.Errorf("Expected nil as error, got %#v", k4)
+	}
+	n.IndexNewChild(-1)
+	n.IndexNewChild(1)
+	n.IndexNewChildWithTags(-1, "kid", "1")
+	n.IndexNewChildWithData(-1, 9.81)
+	n.IndexNewChildWithData(1, 3.14)
+	n.IndexNewChildWithDataAndTags(-1, 3.14, "pi")
+	n.IndexNewChildWithDataAndTags(2, 31.4, "pi", "invalid")
+	k4 = n.IndexNewChildWithDataAndTags(12, 9, "broken")
+	if k4 != nil {
+		t.Errorf("Expected nil as error, got %#v", k4)
+	}
+	n.IndexNewChildWithTags(15, "broken", "out of range")
+	n.IndexNewChildWithData(15, 13)
+	k4 = n.IndexNewChildWithData(-1, gonode.NewNode())
+	if k4 != nil {
+		t.Errorf("Expected nil as error, got %#v", k4)
+	}
+	k4 = n.IndexNewChildWithData(1, gonode.NewNodeWithTags("invalid", "bad data"))
+	if k4 != nil {
+		t.Errorf("Expected nil as error, got %#v", k4)
+	}
+	k4 = n.IndexNewChildWithDataAndTags(-1, gonode.NewNode(), "bad data")
+	if k4 != nil {
+		t.Errorf("Expected nil as error, got %#v", k4)
+	}
+	k4 = n.IndexNewChildWithDataAndTags(3, gonode.NewNode(), "bad data", "2")
+	if k4 != nil {
+		t.Errorf("Expected nil as error, got %#v", k4)
+	}
+}

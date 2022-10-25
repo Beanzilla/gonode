@@ -160,12 +160,29 @@ func (n *Node) Len() int {
 	return len(n.children)
 }
 
+// Obtains the index of the current node from it's parent
+//
+// Will return -1 if the current node has no parent (thus error occurred)
+func (n *Node) Index() int {
+	if n.Parent() == nil {
+		return -1
+	}
+	idx := 0
+	for kid := range n.Parent().Iter() {
+		if kid == n {
+			break
+		}
+		idx += 1
+	}
+	return idx
+}
+
 // Iterator - Iterates over the Node's children
 //
 // http://www.golangpatterns.info/object-oriented/iterators#TOC-Implementation
 //
 // for kid := range Node
-func (n *Node) Iter() <- chan *Node {
+func (n *Node) Iter() <-chan *Node {
 	ch := make(chan *Node, n.Len()/2)
 	go func() {
 		defer close(ch)
@@ -237,6 +254,156 @@ func (n *Node) NewChildWithDataAndTags(data any, tags ...string) *Node {
 	if err != nil {
 		return nil
 	}
+	return o
+}
+
+// Creates a new child after a particular index (Use -1 to place at the beginning/top)
+func (n *Node) IndexNewChild(idx int) *Node {
+	if n.Len() == 0 || idx > n.Len() || idx < -1 {
+		return nil
+	}
+	var o *Node = nil
+	at := 0
+	new_kids := make([]*Node, n.Len())
+	for kid := range n.Iter() {
+		if at == 0 && idx == -1 {
+			o = &Node{
+				parent: n,
+			}
+			new_kids = append(new_kids, o)
+		}
+		if at != idx {
+			new_kids = append(new_kids, kid)
+			at += 1
+			continue
+		}
+		new_kids = append(new_kids, kid)
+		o = &Node{
+			parent: n,
+		}
+		new_kids = append(new_kids, o)
+		at += 1
+	}
+	n.children = new_kids
+	return o
+}
+
+// Creates a new child after a particular index (Use -1 to place at the beginning/top)
+//
+// This version includes given tags to assign to the new node
+func (n *Node) IndexNewChildWithTags(idx int, tags ...string) *Node {
+	if n.Len() == 0 || idx > n.Len() || idx < -1 {
+		return nil
+	}
+	var o *Node = nil
+	at := 0
+	new_kids := make([]*Node, n.Len())
+	for kid := range n.Iter() {
+		if at == 0 && idx == -1 {
+			o = &Node{
+				parent: n,
+				tags:   tags,
+			}
+			new_kids = append(new_kids, o)
+		}
+		if at != idx {
+			new_kids = append(new_kids, kid)
+			at += 1
+			continue
+		}
+		new_kids = append(new_kids, kid)
+		o = &Node{
+			parent: n,
+			tags:   tags,
+		}
+		new_kids = append(new_kids, o)
+		at += 1
+	}
+	n.children = new_kids
+	return o
+}
+
+// Creates a new child after a particular index (Use -1 to place at the beginning/top)
+//
+// This version allows setting the new node's data
+func (n *Node) IndexNewChildWithData(idx int, data any) *Node {
+	if n.Len() == 0 || idx > n.Len() || idx < -1 {
+		return nil
+	}
+	var o *Node = nil
+	at := 0
+	new_kids := make([]*Node, n.Len())
+	for kid := range n.Iter() {
+		if at == 0 && idx == -1 {
+			o = &Node{
+				parent: n,
+			}
+			err := o.SetData(data)
+			if err != nil {
+				return nil
+			}
+			new_kids = append(new_kids, o)
+		}
+		if at != idx {
+			new_kids = append(new_kids, kid)
+			at += 1
+			continue
+		}
+		new_kids = append(new_kids, kid)
+		o = &Node{
+			parent: n,
+		}
+		err := o.SetData(data)
+		if err != nil {
+			return nil
+		}
+		new_kids = append(new_kids, o)
+		at += 1
+	}
+	n.children = new_kids
+	return o
+}
+
+// Creates a new child after a particular index (Use -1 to place at the beginning/top)
+//
+// This version allows setting the new node's data, and given tags
+func (n *Node) IndexNewChildWithDataAndTags(idx int, data any, tags ...string) *Node {
+	if n.Len() == 0 || idx > n.Len() || idx < -1 {
+		return nil
+	}
+	var o *Node = nil
+	at := 0
+	new_kids := make([]*Node, n.Len())
+	for kid := range n.Iter() {
+		if at == 0 && idx == -1 {
+			o = &Node{
+				parent: n,
+				tags:   tags,
+			}
+			err := o.SetData(data)
+			if err != nil {
+				return nil
+			}
+			new_kids = append(new_kids, o)
+		}
+		if at != idx {
+			new_kids = append(new_kids, kid)
+			at += 1
+			continue
+		}
+		new_kids = append(new_kids, kid)
+		o = &Node{
+			parent: n,
+			tags:   tags,
+		}
+		err := o.SetData(data)
+		if err != nil {
+			return nil
+		}
+		new_kids = append(new_kids, o)
+		at += 1
+	}
+	n.children = new_kids
 	return o
 }
 
